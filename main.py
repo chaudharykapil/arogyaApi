@@ -107,7 +107,7 @@ def MedicinePred():
 def DiseasePred():
     data = request.data
     data = json.loads(data)
-    print(data)
+    print(type(data))
     return json.dumps({"res":0})
 
 
