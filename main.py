@@ -71,7 +71,7 @@ def serviceValidation(selected_symptoms):
     for symptom in selected_symptoms:
         if symptom:
             inputs[symptom_mapping[symptom]] = 1
-    print("input",inputs)
+    print("Disease model input: ",inputs)
     # convert list to NumPy array
     inputs = np.array(inputs)
     inputs = inputs.reshape(1, -1)
@@ -107,6 +107,7 @@ def MedicinePred():
 def DiseasePred():
     data = request.data
     data = json.loads(data)
+    print("DiseaseData: ",data)
     out = serviceValidation(data)
     print(type(data))
     return json.dumps({"res":out})
