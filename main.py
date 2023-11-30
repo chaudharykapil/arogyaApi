@@ -97,9 +97,10 @@ def test():
 def MedicinePred():
     data = json.loads(request.data)
     print(data)
-    selectedOptions = None
-    # out = medicineValidation(selectedOptions)
-    return json.dumps({"res":0})
+    selectedOptions = data
+    out = medicineValidation(selectedOptions)
+    print(out)
+    return json.dumps({"res":out})
 
 
 @app.route("/test-disease", methods = ["POST"])
