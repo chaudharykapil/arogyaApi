@@ -107,8 +107,9 @@ def MedicinePred():
 def DiseasePred():
     data = request.data
     data = json.loads(data)
+    out = serviceValidation(data)
     print(type(data))
-    return json.dumps({"res":0})
+    return json.dumps({"res":out})
 
 
 # if __name__ == "__main__":
