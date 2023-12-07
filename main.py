@@ -137,5 +137,5 @@ def searchImage():
     return img_labels[idx]
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)
