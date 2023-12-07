@@ -1,8 +1,12 @@
 # Importing necessary Libraries
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect ,render_template
 import pickle 
 import numpy as np
 import json
+from keras.models import load_model
+from utils.Residual import ResidualUnit,DefaultConv2D
+from PIL import Image
+from joblib import dump, load
 app = Flask(__name__)
 app.app_context().push()
 
@@ -15,8 +19,10 @@ model_N = pickle.load(f)
 f2 = open("drugTree.pkl", "rb")
 model_med = pickle.load(f2)
 
+img_model = load_model("plant_model_v1.h5",custom_objects={"ResidualUnit":ResidualUnit,})
+img_labels = load('labels.joblib') 
 
-img_labels = pickle.load(open("labels.pkl",'rb'))
+
 
 symptom_mapping = {
     'acidity': 0,
@@ -111,6 +117,24 @@ def DiseasePred():
     out = serviceValidation(data)
     print(type(data))
     return json.dumps({"res":out})
+
+
+@app.route("/search-image",methods = ["GET","POST"])
+def searchImage():
+    if request.method == "GET":
+        return "image api ok"
+    if request.method == "POST":
+        # img = request.files.get("image")
+        # img.save("static/input/img.jpg")
+        load_img = Image.open("static/input/img.jpg")
+        load_img = load_img.resize((128,128))
+        data = np.array(load_img).reshape(1,128,128,3)
+        print(data.shape)
+        res = img_model.predict(data)
+        prob  =  list(res[0])
+        idx = prob.index(max(prob))
+        print("Result: ",img_labels[idx])
+    return img_labels[idx]
 
 
 # if __name__ == "__main__":
