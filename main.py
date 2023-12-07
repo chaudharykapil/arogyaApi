@@ -7,10 +7,21 @@ from keras.models import load_model
 from utils.Residual import ResidualUnit,DefaultConv2D
 from PIL import Image
 from joblib import dump, load
+import warnings
+from sklearn.exceptions import DataConversionWarning
+
+from utils.support import ConvolutionalNetwork,transform
+import pickle
+import torch
+
+
+
+
 app = Flask(__name__)
 app.app_context().push()
 
-
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DataConversionWarning)
 #Loading Diease Dectection Pickle File
 f = open("DecisionTree-Model.sav", "rb")
 model_N = pickle.load(f)
@@ -19,9 +30,12 @@ model_N = pickle.load(f)
 f2 = open("drugTree.pkl", "rb")
 model_med = pickle.load(f2)
 
-img_model = load_model("plant_model_v1.h5",custom_objects={"ResidualUnit":ResidualUnit,})
-img_labels = load('labels.joblib') 
+# img_model = load_model("plant_model_v1.h5",custom_objects={"ResidualUnit":ResidualUnit,})
+# img_labels = load('labels.joblib') 
 
+f = open("classes.pkl","rb") 
+img_class_name = pickle.load(f)
+f.close()
 
 
 symptom_mapping = {
@@ -119,23 +133,37 @@ def DiseasePred():
     return json.dumps({"res":out})
 
 
-@app.route("/search-image",methods = ["GET","POST"])
-def searchImage():
+# @app.route("/search-image/v1",methods = ["GET","POST"])
+# def searchImage():
+#     if request.method == "GET":
+#         return "image api ok"
+#     if request.method == "POST":
+#         img = request.files.get("image")
+#         img.save("static/input/img.jpg")
+#         load_img = Image.open("static/input/img.jpg")
+#         load_img = load_img.resize((128,128))
+#         data = np.array(load_img).reshape(1,128,128,3)
+#         print(data.shape)
+#         res = img_model.predict(data)
+#         prob  =  list(res[0])
+#         idx = prob.index(max(prob))
+#         print("Result: ",img_labels[idx])
+#     return img_labels[idx]
+
+@app.route("/search-image/v2",methods = ["GET","POST"])
+def searchPlant():
     if request.method == "GET":
-        return "image api ok"
-    if request.method == "POST":
-        # img = request.files.get("image")
-        # img.save("static/input/img.jpg")
-        load_img = Image.open("static/input/img.jpg")
-        load_img = load_img.resize((128,128))
-        data = np.array(load_img).reshape(1,128,128,3)
-        print(data.shape)
-        res = img_model.predict(data)
-        prob  =  list(res[0])
-        idx = prob.index(max(prob))
-        print("Result: ",img_labels[idx])
-    return img_labels[idx]
+        return "image api V2 ok"
+    img = request.files.get("image")
+    img.save("static/input/img.jpg")
+    load_img = Image.open("static/input/img.jpg")
+    model_1 = ConvolutionalNetwork(img_class_name)
+    model_1.load_state_dict(torch.load("input_embeddings.pt"))
+    t_img = transform(load_img) 
+    choice = model_1(t_img).argmax(dim=1).item()
+    print(choice,img_class_name[choice])
+    return img_class_name[choice]
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True,host="0.0.0.0")
