@@ -3,4 +3,5 @@ gunicorn
 requests
 numpy
 Pillow
+keras
 scikit-learn==1.2.2
